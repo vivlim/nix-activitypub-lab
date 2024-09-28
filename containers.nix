@@ -2,12 +2,20 @@
 let
   consts = import ./consts.nix;
   addrs = consts.addrs;
+
   hostsEntriesFile = ''
   ${addrs.host} host
   ${addrs.inner} inner
-  ${addrs.inner} ${consts.hostnames.inner.host}
-  ${addrs.inner} ${consts.hostnames.inner.account-domain}
+  ${addrs.boundary} boundary
+  ${addrs.outer} outer
+  ${addrs.host} ${consts.hostnames.inner.host}
+  ${addrs.host} ${consts.hostnames.inner.account-domain}
+  ${addrs.host} ${consts.hostnames.boundary.host}
+  ${addrs.host} ${consts.hostnames.boundary.account-domain}
+  ${addrs.host} ${consts.hostnames.outer.host}
+  ${addrs.host} ${consts.hostnames.outer.account-domain}
   '';
+
   containerCommonConfig = {
     autoStart = true;
     hostAddress = addrs.host;
@@ -51,6 +59,15 @@ let
         useHostResolvConf = lib.mkForce false;
 
       };
+
+      services.gotosocial = {
+        settings = {
+          http-client = {
+            allow-ips = ["10.0.0.0/8"]; # Allow connecting to caddy from the inside
+            tls-insecure-skip-verify = true; # don't verify certs
+          };
+        };
+      };
     };
   };
 in
@@ -74,6 +91,7 @@ in
       services.gotosocial = {
         enable = true;
         settings = {
+          instance-federation-mode = "allowlist";
           application-name = "inner-gts";
           port = 80;
           bind-address = "0.0.0.0";
@@ -87,7 +105,65 @@ in
     };
   }];
 
+  containers.boundary = lib.mkMerge [containerCommonConfig {
+    localAddress = addrs.boundary;
+    bindMounts = {
+      "/var/lib/gotosocial" = {
+        hostPath = "/var/lib/gotosocial-boundary";
+        isReadOnly = false;
+      };
+    };
+
+    config = {
+      environment.systemPackages = with pkgs; [ gotosocial ];
+      services.gotosocial = {
+        enable = true;
+        settings = {
+          application-name = "boundary-gts";
+          instance-federation-mode = "blocklist";
+          port = 80;
+          bind-address = "0.0.0.0";
+          protocol = "https"; # via caddy
+          host = consts.hostnames.boundary.host;
+          account-domain = consts.hostnames.boundary.account-domain;
+          trusted-proxies = consts.addrs.host;
+          log-level = "trace";
+        };
+      };
+    };
+  }];
+
+  containers.outer = lib.mkMerge [containerCommonConfig {
+    localAddress = addrs.outer;
+    bindMounts = {
+      "/var/lib/gotosocial" = {
+        hostPath = "/var/lib/gotosocial-outer";
+        isReadOnly = false;
+      };
+    };
+
+    config = {
+      environment.systemPackages = with pkgs; [ gotosocial ];
+      services.gotosocial = {
+        enable = true;
+        settings = {
+          application-name = "outer-gts";
+          instance-federation-mode = "blocklist";
+          port = 80;
+          bind-address = "0.0.0.0";
+          protocol = "https"; # via caddy
+          host = consts.hostnames.outer.host;
+          account-domain = consts.hostnames.outer.account-domain;
+          trusted-proxies = consts.addrs.host;
+          log-level = "trace";
+        };
+      };
+    };
+  }];
+
   system.activationScripts.createContainerPaths = lib.stringAfter [ "var" ] ''
     mkdir -p /var/lib/gotosocial-inner
+    mkdir -p /var/lib/gotosocial-boundary
+    mkdir -p /var/lib/gotosocial-outer
   '';
 }

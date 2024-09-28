@@ -9,6 +9,20 @@
                 <li><a href="/api/containerjournal?c=inner&unit=gotosocial">journal</a></li>
             </ul></li>
         </ul></li>
+        <li>container: boundary<ul>
+            <li><a href="https://boundary-gotosocial.localtest.me/">gotosocial: boundary-gotosocial.localtest.me</a><ul>
+                <li><a href="/api/containersystemctl?c=boundary&verb=status&unit=gotosocial">status</a></li>
+                <li><a href="/api/containersystemctl?c=boundary&verb=restart&unit=gotosocial">restart</a></li>
+                <li><a href="/api/containerjournal?c=boundary&unit=gotosocial">journal</a></li>
+            </ul></li>
+        </ul></li>
+        <li>container: outer<ul>
+            <li><a href="https://outer-gotosocial.localtest.me/">gotosocial: outer-gotosocial.localtest.me</a><ul>
+                <li><a href="/api/containersystemctl?c=outer&verb=status&unit=gotosocial">status</a></li>
+                <li><a href="/api/containersystemctl?c=outer&verb=restart&unit=gotosocial">restart</a></li>
+                <li><a href="/api/containerjournal?c=outer&unit=gotosocial">journal</a></li>
+            </ul></li>
+        </ul></li>
     </ul>
     <h2>misc journals</h2>
     <ul>
@@ -25,6 +39,8 @@
     <h1>danger zone</h1>
     <ul>
     <li><a href="/api/resetcontainer?c=inner&unit=gotosocial">reset 'inner' gts</a></li>
+    <li><a href="/api/resetcontainer?c=boundary&unit=gotosocial">reset 'boundary' gts</a></li>
+    <li><a href="/api/resetcontainer?c=outer&unit=gotosocial">reset 'outer' gts</a></li>
     <li><a href="/api/poweroff" style="font-weight: bolder; color:red;">poweroff the vm</a></li>
     </ul>
 </body>

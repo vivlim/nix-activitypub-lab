@@ -34,7 +34,7 @@ if you make any changes to the config, you'll need to shutdown the vm and `nix r
 
 ### how can i add more instances?
 1. add another hostname and ip in `consts.nix`
-2. copy an existing container in `containers.nix` and reference the new values
+2. copy an existing container in `containers.nix` and reference the new values. make sure to update the list of hosts entries and the activation script
 3. update `www.nix` so caddy reverse proxies to it
 
 ### how's that 'admin panel' work?

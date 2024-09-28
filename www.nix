@@ -26,6 +26,26 @@
         Content-Security-Policy upgrade-insecure-requests
       }
     }
+    ${consts.hostnames.boundary.host} {
+      reverse_proxy boundary:80 {
+        # Remove CSP header so assets aren't blocked.
+        header_down -Content-Security-Policy
+      }
+
+      header {
+        Content-Security-Policy upgrade-insecure-requests
+      }
+    }
+    ${consts.hostnames.outer.host} {
+      reverse_proxy outer:80 {
+        # Remove CSP header so assets aren't blocked.
+        header_down -Content-Security-Policy
+      }
+
+      header {
+        Content-Security-Policy upgrade-insecure-requests
+      }
+    }
     '';
   };
 
