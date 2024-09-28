@@ -1,0 +1,32 @@
+<html>
+<body>
+    <h1>services</h1>
+    <ul>
+        <li>container: inner<ul>
+            <li><a href="https://inner-gotosocial.localtest.me/">gotosocial: inner-gotosocial.localtest.me</a><ul>
+                <li><a href="/api/containersystemctl?c=inner&verb=status&unit=gotosocial">status</a></li>
+                <li><a href="/api/containersystemctl?c=inner&verb=restart&unit=gotosocial">restart</a></li>
+                <li><a href="/api/containerjournal?c=inner&unit=gotosocial">journal</a></li>
+            </ul></li>
+        </ul></li>
+    </ul>
+    <h2>misc journals</h2>
+    <ul>
+    <li><a href="/api/journal?unit=caddy">caddy journal</a></li>
+    <li><a href="/api/journal?unit=shell2http">shell2http journal</a></li>
+    </ul>
+    <h2>handy links</h2>
+    <ul>
+    <li><a href="https://semaphore.social">semaphore</a></li>
+    <li><a href="https://phanpy.social">phanpy</a></li>
+    <li><a href="https://pillbug.vivl.im">pillbug</a></li>
+    </ul>
+
+    <h1>danger zone</h1>
+    <ul>
+    <li><a href="/api/resetcontainer?c=inner&unit=gotosocial">reset 'inner' gts</a></li>
+    <li><a href="/api/poweroff" style="font-weight: bolder; color:red;">poweroff the vm</a></li>
+    </ul>
+</body>
+</html>
+
