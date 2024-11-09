@@ -8,12 +8,15 @@ let
   ${addrs.inner} inner
   ${addrs.boundary} boundary
   ${addrs.outer} outer
+  ${addrs.akkoma} akkoma
   ${addrs.host} ${consts.hostnames.inner.host}
   ${addrs.host} ${consts.hostnames.inner.account-domain}
   ${addrs.host} ${consts.hostnames.boundary.host}
   ${addrs.host} ${consts.hostnames.boundary.account-domain}
   ${addrs.host} ${consts.hostnames.outer.host}
   ${addrs.host} ${consts.hostnames.outer.account-domain}
+  ${addrs.host} ${consts.hostnames.akkoma.host}
+  ${addrs.host} ${consts.hostnames.akkoma.account-domain}
   '';
 
   containerCommonConfig = {
@@ -135,6 +138,77 @@ in
 
   containers.outer = lib.mkMerge [containerCommonConfig {
     localAddress = addrs.outer;
+    bindMounts = {
+      "/var/lib/gotosocial" = {
+        hostPath = "/var/lib/gotosocial-outer";
+        isReadOnly = false;
+      };
+    };
+
+    config = {
+      environment.systemPackages = with pkgs; [ gotosocial ];
+      services.gotosocial = {
+        enable = true;
+        settings = {
+          application-name = "outer-gts";
+          instance-federation-mode = "blocklist";
+          port = 80;
+          bind-address = "0.0.0.0";
+          protocol = "https"; # via caddy
+          host = consts.hostnames.outer.host;
+          account-domain = consts.hostnames.outer.account-domain;
+          trusted-proxies = consts.addrs.host;
+          log-level = "trace";
+        };
+      };
+    };
+  }];
+
+  containers.akkoma = lib.mkMerge [
+  {
+    autoStart = true;
+    hostAddress = addrs.host;
+    privateNetwork = true;
+    config = {
+      networking = {
+        extraHosts = hostsEntriesFile;
+        firewall = {
+          enable = true;
+          allowedTCPPorts = [ 80 ];
+        };
+        # Use systemd-resolved inside the container
+        # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
+        useHostResolvConf = lib.mkForce false;
+
+      };
+
+      services.akkoma = {
+      # echo "trying to create admin account u:${consts.testcreds.username} p:${consts.testcreds.password} e:${consts.testcreds.email}"
+        config = {
+          ":logger".":ex_syslogger".level = ":debug";
+          name = consts.hostnames.akkoma.host;
+          email = consts.testcreds.email;
+          notify_email = consts.testcreds.email;
+          description = "testing akkoma instance";
+          registrations_open= true;
+          account_activation_required = false;
+          account_approval_required = false;
+        };
+      };
+
+      environment.systemPackages = let
+      resetScript = pkgs.writeShellScriptBin "reset-akkoma" ''
+      set -ex
+      echo "todo"
+      # need to run this as akkoma user. not sure where the cli is. guessing
+      env MIX_ENV=prod ${pkgs.akkoma}/bin/mix pleroma.user new ${consts.testcreds.username} ${consts.testcreds.email} --admin
+      '';
+
+      in [ resetScript pkgs.akkoma ];
+    };
+  }
+  {
+    localAddress = addrs.akkoma;
     bindMounts = {
       "/var/lib/gotosocial" = {
         hostPath = "/var/lib/gotosocial-outer";

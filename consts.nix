@@ -4,6 +4,7 @@
     inner = "10.200.200.2";
     boundary = "10.200.200.3";
     outer = "10.200.200.4";
+    akkoma = "10.200.200.5";
   };
   hostnames = {
     host = "ap-lab.localtest.me";
@@ -17,6 +18,10 @@
     };
     outer = rec {
       host = "outer-gotosocial.localtest.me";
+      account-domain = host;
+    };
+    akkoma = rec {
+      host = "akkoma.localtest.me";
       account-domain = host;
     };
   };
